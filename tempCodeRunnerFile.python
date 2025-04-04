@@ -1,0 +1,102 @@
+import pygame
+import random
+import time
+
+# Настройки окна
+WIDTH, HEIGHT = 600, 600
+CELL_SIZE = 20
+
+# Цвета
+BLACK = (0, 0, 0)
+GREEN = (0, 255, 0)
+RED = (255, 0, 0)
+WHITE = (255, 255, 255)
+gray = (200, 200, 200)
+
+# Инициализация
+pygame.init()
+win = pygame.display.set_mode((WIDTH, HEIGHT))
+pygame.display.set_caption("Snake Game")
+font = pygame.font.SysFont(None, 36)
+
+clock = pygame.time.Clock()
+
+high_level = 1
+
+def place_food(snake):
+    while True:
+        x = random.randint(1, (WIDTH - CELL_SIZE*2) // CELL_SIZE) * CELL_SIZE
+        y = random.randint(1, (HEIGHT - CELL_SIZE*2) // CELL_SIZE) * CELL_SIZE
+        if (x, y) not in snake:
+            return (x, y)
+
+def reset_game():
+    snake = [(100, 100)]
+    dx, dy = CELL_SIZE, 0
+    food = place_food(snake)
+    speed = 5
+    score = 0
+    level = 1
+    return snake, dx, dy, food, speed, score, level
+
+running = True
+snake, dx, dy, food, speed, score, level = reset_game()
+
+while running:
+    clock.tick(speed)
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            running = False
+
+    # Управление
+    keys = pygame.key.get_pressed()
+    if keys[pygame.K_UP] and dy == 0:
+        dx, dy = 0, -CELL_SIZE
+    if keys[pygame.K_DOWN] and dy == 0:
+        dx, dy = 0, CELL_SIZE
+    if keys[pygame.K_LEFT] and dx == 0:
+        dx, dy = -CELL_SIZE, 0
+    if keys[pygame.K_RIGHT] and dx == 0:
+        dx, dy = CELL_SIZE, 0
+
+    # Передвижение змейки
+    head = (snake[0][0] + dx, snake[0][1] + dy)
+
+    # Проверка на столкновение со стеной и самопересечение
+    if (head[0] < CELL_SIZE or head[0] >= WIDTH - CELL_SIZE or
+        head[1] < CELL_SIZE or head[1] >= HEIGHT - CELL_SIZE or
+        head in snake):
+        win.fill(BLACK)
+        game_over_text = font.render("Game Over", True, RED)
+        win.blit(game_over_text, (WIDTH//2 - game_over_text.get_width()//2, HEIGHT//2))
+        pygame.display.update()
+        time.sleep(3)
+        if level > high_level:
+            high_level = level
+        snake, dx, dy, food, speed, score, level = reset_game()
+        continue
+
+    snake.insert(0, head)
+    if head == food:
+        score += 1
+        if score % 4 == 0:
+            level += 1
+            speed += 1
+        food = place_food(snake)
+    else:
+        snake.pop()
+
+    # Отрисовка экрана
+    win.fill(BLACK)
+    pygame.draw.rect(win, gray, (0, 0, WIDTH, HEIGHT), CELL_SIZE)  # граница
+    for segment in snake:
+        pygame.draw.rect(win, GREEN, (*segment, CELL_SIZE, CELL_SIZE))
+    pygame.draw.rect(win, RED, (*food, CELL_SIZE, CELL_SIZE))
+
+    # Отображение очков и уровня
+    score_text = font.render(f"Score: {score}  Level: {level}  High Level: {high_level}", True, WHITE)
+    win.blit(score_text, (30, 30))
+
+    pygame.display.update()
+
+pygame.quit()
