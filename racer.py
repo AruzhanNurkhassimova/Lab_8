@@ -145,9 +145,9 @@ def game_over_screen():
                 pygame.quit()
                 sys.exit()
             elif event.type == KEYDOWN:
-                if event.key == K_SPACE:  # Продолжить игру при нажатии на пробел
+                if event.key == K_SPACE:  # Continue game
                     return True
-                elif event.key == K_ESCAPE:  # Закончить игру при нажатии на ESC
+                elif event.key == K_ESCAPE:  # End game
                     return False
 
 def handle_crash():
